@@ -9,7 +9,7 @@ COPY packages/web/package.json ./packages/web/
 COPY packages/desktop/package.json ./packages/desktop/
 
 # Install dependencies
-RUN bun install --frozen-lockfile
+RUN bun install
 
 # Copy source
 COPY packages/web ./packages/web
