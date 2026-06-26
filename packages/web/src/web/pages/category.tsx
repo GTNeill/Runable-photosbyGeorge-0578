@@ -140,7 +140,7 @@ export default function CategoryPage() {
           <div className="flex flex-wrap gap-2 mb-8 sm:mb-10">
             <button
               onClick={() => setSubFilter(null)}
-              className={`px-4 py-1.5 text-[11px] font-medium tracking-[0.15em] uppercase border transition-colors duration-150 ${
+              className={`px-4 py-1.5 text-[11px] font-medium tracking-[0.15em] border transition-colors duration-150 ${
                 !activeSub
                   ? "border-[#C8A96E] text-[#C8A96E]"
                   : "border-[#2A2A2A] text-[#5A5A5A] hover:border-[#5A5A5A] hover:text-[#A0A0A0]"
@@ -152,7 +152,7 @@ export default function CategoryPage() {
               <button
                 key={sub.id}
                 onClick={() => setSubFilter(sub.slug)}
-                className={`px-4 py-1.5 text-[11px] font-medium tracking-[0.15em] uppercase border transition-colors duration-150 ${
+                className={`px-4 py-1.5 text-[11px] font-medium tracking-[0.15em] border transition-colors duration-150 ${
                   activeSub?.id === sub.id
                     ? "border-[#C8A96E] text-[#C8A96E]"
                     : "border-[#2A2A2A] text-[#5A5A5A] hover:border-[#5A5A5A] hover:text-[#A0A0A0]"

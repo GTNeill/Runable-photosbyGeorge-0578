@@ -41,6 +41,11 @@ export function Navbar() {
     ? location.replace("/category/", "").split("/")[0]
     : null;
 
+  const subSlug =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("sub")
+      : null;
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
@@ -57,8 +62,13 @@ export function Navbar() {
 
   const categories: Category[] = data?.categories ?? [];
   const subsMap = useSubcategories(categories);
-  const activeCategoryName = categorySlug
-    ? (categories.find((c) => c.slug === categorySlug)?.name ?? null)
+  const activeCategory = categorySlug
+    ? (categories.find((c) => c.slug === categorySlug) ?? null)
+    : null;
+  const activeCategoryName = activeCategory?.name ?? null;
+
+  const activeSubName = activeCategory && subSlug
+    ? ((subsMap[activeCategory.id] ?? []).find((s) => s.slug === subSlug)?.name ?? null)
     : null;
 
   const bgClass =
@@ -91,12 +101,20 @@ export function Navbar() {
           </span>
         </Link>
 
-        {/* Centered category title */}
+        {/* Centered category / subcategory title */}
         {activeCategoryName && (
-          <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
-            <span className="font-display text-sm sm:text-base tracking-[0.2em] uppercase text-[#F0F0F0]">
+          <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none flex items-center gap-2">
+            <span className="font-display text-sm sm:text-base tracking-[0.2em] text-[#F0F0F0]">
               {activeCategoryName}
             </span>
+            {activeSubName && (
+              <>
+                <span className="text-[#2A2A2A] text-sm select-none">/</span>
+                <span className="font-display text-sm sm:text-base tracking-[0.2em] text-[#A0A0A0]">
+                  {activeSubName}
+                </span>
+              </>
+            )}
           </div>
         )}
 
@@ -122,7 +140,7 @@ export function Navbar() {
                         /* No subcategories — direct link */
                         <Link to={`/category/${cat.slug}`}>
                           <span
-                            className="block px-6 py-2.5 text-[13px] font-medium tracking-[0.15em] uppercase text-[#A0A0A0] hover:text-white hover:bg-white/5 cursor-pointer transition-colors duration-150"
+                            className="block px-6 py-2.5 text-[13px] font-medium tracking-[0.15em] text-[#A0A0A0] hover:text-white hover:bg-white/5 cursor-pointer transition-colors duration-150"
                             onClick={() => setPortfolioOpen(false)}
                           >
                             {cat.name}
@@ -133,7 +151,7 @@ export function Navbar() {
                         <div>
                           <Link to={`/category/${cat.slug}`}>
                             <span
-                              className="block px-6 py-2.5 text-[13px] font-medium tracking-[0.15em] uppercase text-[#F0F0F0] hover:text-white hover:bg-white/5 cursor-pointer transition-colors duration-150"
+                              className="block px-6 py-2.5 text-[13px] font-medium tracking-[0.15em] text-[#F0F0F0] hover:text-white hover:bg-white/5 cursor-pointer transition-colors duration-150"
                               onClick={() => setPortfolioOpen(false)}
                             >
                               {cat.name}
@@ -142,7 +160,7 @@ export function Navbar() {
                           {subs.map((sub) => (
                             <Link key={sub.slug} to={`/category/${cat.slug}?sub=${sub.slug}`}>
                               <span
-                                className="block pl-10 pr-6 py-2 text-[12px] font-medium tracking-[0.12em] uppercase text-[#5A5A5A] hover:text-[#C8A96E] hover:bg-white/5 cursor-pointer transition-colors duration-150"
+                                className="block pl-10 pr-6 py-2 text-[12px] font-medium tracking-[0.12em] text-[#5A5A5A] hover:text-[#C8A96E] hover:bg-white/5 cursor-pointer transition-colors duration-150"
                                 onClick={() => setPortfolioOpen(false)}
                               >
                                 {sub.name}
@@ -205,7 +223,7 @@ export function Navbar() {
                     {subs.length === 0 ? (
                       <Link to={`/category/${cat.slug}`}>
                         <span
-                          className="block py-2 text-[13px] font-medium tracking-[0.15em] uppercase text-[#A0A0A0] hover:text-white cursor-pointer transition-colors"
+                          className="block py-2 text-[13px] font-medium tracking-[0.15em] text-[#A0A0A0] hover:text-white cursor-pointer transition-colors"
                           onClick={closeAll}
                         >
                           {cat.name}
@@ -217,7 +235,7 @@ export function Navbar() {
                         <div className="flex items-center justify-between py-2">
                           <Link to={`/category/${cat.slug}`}>
                             <span
-                              className="text-[13px] font-medium tracking-[0.15em] uppercase text-[#F0F0F0] hover:text-white cursor-pointer transition-colors"
+                              className="text-[13px] font-medium tracking-[0.15em] text-[#F0F0F0] hover:text-white cursor-pointer transition-colors"
                               onClick={closeAll}
                             >
                               {cat.name}
@@ -239,7 +257,7 @@ export function Navbar() {
                             {subs.map((sub) => (
                               <Link key={sub.slug} to={`/category/${cat.slug}?sub=${sub.slug}`}>
                                 <span
-                                  className="block py-1.5 text-[12px] font-medium tracking-[0.12em] uppercase text-[#5A5A5A] hover:text-[#C8A96E] cursor-pointer transition-colors"
+                                  className="block py-1.5 text-[12px] font-medium tracking-[0.12em] text-[#5A5A5A] hover:text-[#C8A96E] cursor-pointer transition-colors"
                                   onClick={closeAll}
                                 >
                                   {sub.name}
