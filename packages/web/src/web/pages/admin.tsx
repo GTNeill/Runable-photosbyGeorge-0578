@@ -5,6 +5,7 @@ import { authClient, clearToken } from "../lib/auth";
 import {
   Upload, Trash2, Star, LogOut, Image, Settings,
   Pencil, Check, X, ChevronDown, ChevronRight, Plus, Phone, FolderSync,
+  CheckSquare, Square, MoveRight,
 } from "lucide-react";
 
 // ── helpers ────────────────────────────────────────────────────────────────
@@ -587,6 +588,8 @@ export default function AdminPage() {
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadSubcategoryId, setUploadSubcategoryId] = useState<number | null>(null);
   const [subcatFilter, setSubcatFilter] = useState<number | null | "none">(null); // null=all, "none"=unassigned
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkMoveCatId, setBulkMoveCatId] = useState<number | "">("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
@@ -614,7 +617,25 @@ export default function AdminPage() {
     setActiveSlug(slug);
     setSubcatFilter(null);
     setUploadSubcategoryId(null);
+    setSelectedIds(new Set());
+    setBulkMoveCatId("");
   };
+
+  const movePhoto = useMutation({
+    mutationFn: async ({ id, categoryId }: { id: number; categoryId: number }) => {
+      const res = await fetch(`/api/photos/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ categoryId }),
+        credentials: "include",
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-photos", activeSlug] });
+      queryClient.invalidateQueries({ queryKey: ["all-photos"] });
+    },
+  });
 
   const { data: photoData, isLoading: photosLoading } = useQuery({
     queryKey: ["admin-photos", activeSlug],
@@ -690,6 +711,47 @@ export default function AdminPage() {
 
   const handleFiles = (files: FileList | null) => { if (!files) return; Array.from(files).forEach(uploadFile); };
 
+  const toggleSelect = (id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const filteredPhotos = photos.filter((photo: any) => {
+    if (subcatFilter === null) return true;
+    if (subcatFilter === "none") return !photo.subcategoryId;
+    return photo.subcategoryId === subcatFilter;
+  });
+
+  const allSelected = filteredPhotos.length > 0 && filteredPhotos.every((p: any) => selectedIds.has(p.id));
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredPhotos.map((p: any) => p.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Delete ${selectedIds.size} photo${selectedIds.size !== 1 ? "s" : ""}?`)) return;
+    for (const id of selectedIds) {
+      await deletePhoto.mutateAsync(id);
+    }
+    setSelectedIds(new Set());
+  };
+
+  const handleBulkMove = async () => {
+    if (!bulkMoveCatId) return;
+    for (const id of selectedIds) {
+      await movePhoto.mutateAsync({ id, categoryId: Number(bulkMoveCatId) });
+    }
+    setSelectedIds(new Set());
+    setBulkMoveCatId("");
+  };
+
   const handleSignOut = async () => { await authClient.signOut(); clearToken(); window.location.href = "/"; };
 
   const sidebarBtn = (active: boolean) =>
@@ -761,7 +823,10 @@ export default function AdminPage() {
                 <h1 className="font-display text-3xl font-semibold text-[#0A0A0A]">
                   {activeSlug === "all" ? "All Photos" : categories.find((c: any) => c.slug === activeSlug)?.name ?? activeSlug}
                 </h1>
-                <p className="text-sm text-[#A0A0A0] mt-1">{photos.length} photo{photos.length !== 1 ? "s" : ""}</p>
+                <p className="text-sm text-[#A0A0A0] mt-1">
+                {photos.length} photo{photos.length !== 1 ? "s" : ""}
+                {selectedIds.size > 0 && <span className="ml-2 text-[#C8A96E] font-medium">· {selectedIds.size} selected</span>}
+              </p>
               </div>
               <a href="/" target="_blank" rel="noopener noreferrer" className="text-xs text-[#A0A0A0] hover:text-[#0A0A0A] transition-colors tracking-widest uppercase border border-[#E5E5E5] px-4 py-2 hover:border-[#0A0A0A]">
                 View Site
@@ -839,6 +904,61 @@ export default function AdminPage() {
               </div>
             )}
 
+            {/* Bulk action toolbar */}
+            {photos.length > 0 && !photosLoading && (
+              <div className="mb-4 flex items-center gap-3 flex-wrap">
+                <button
+                  onClick={toggleSelectAll}
+                  className="flex items-center gap-1.5 text-xs text-[#6B6B6B] hover:text-[#0A0A0A] transition-colors border border-[#E5E5E5] px-3 py-1.5 rounded-sm hover:border-[#A0A0A0] bg-white"
+                >
+                  {allSelected ? <CheckSquare size={13} className="text-[#C8A96E]" /> : <Square size={13} />}
+                  {allSelected ? "Deselect all" : "Select all"}
+                </button>
+
+                {selectedIds.size > 0 && (
+                  <>
+                    <button
+                      onClick={handleBulkDelete}
+                      className="flex items-center gap-1.5 text-xs text-white bg-red-500 hover:bg-red-600 transition-colors px-3 py-1.5 rounded-sm"
+                    >
+                      <Trash2 size={13} /> Delete {selectedIds.size}
+                    </button>
+
+                    <div className="flex items-center gap-1.5">
+                      <MoveRight size={13} className="text-[#A0A0A0]" />
+                      <select
+                        value={bulkMoveCatId}
+                        onChange={(e) => setBulkMoveCatId(e.target.value ? Number(e.target.value) : "")}
+                        className="border border-[#E5E5E5] bg-white px-2 py-1.5 text-xs text-[#0A0A0A] focus:outline-none focus:border-[#0A0A0A] transition-colors rounded-sm"
+                      >
+                        <option value="">Move to category…</option>
+                        {categories
+                          .filter((c: any) => c.slug !== activeSlug)
+                          .map((c: any) => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                          ))}
+                      </select>
+                      {bulkMoveCatId !== "" && (
+                        <button
+                          onClick={handleBulkMove}
+                          className="text-xs text-white bg-[#0A0A0A] hover:bg-[#2A2A2A] px-3 py-1.5 rounded-sm transition-colors"
+                        >
+                          Move
+                        </button>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => setSelectedIds(new Set())}
+                      className="text-xs text-[#A0A0A0] hover:text-[#0A0A0A] transition-colors ml-auto"
+                    >
+                      Clear selection
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
             {/* Photo grid */}
             {photosLoading ? (
               <div className="flex items-center justify-center py-24">
@@ -851,60 +971,73 @@ export default function AdminPage() {
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {photos
-                  .filter((photo: any) => {
-                    if (subcatFilter === null) return true;
-                    if (subcatFilter === "none") return !photo.subcategoryId;
-                    return photo.subcategoryId === subcatFilter;
-                  })
-                  .map((photo: any) => {
-                    const photoSubcat = subcategories.find((s: any) => s.id === photo.subcategoryId);
-                    return (
-                      <div key={photo.id} className="group relative bg-white overflow-hidden rounded-sm border border-[#E5E5E5]">
-                        <img src={photo.url} alt={photo.title ?? ""} className="w-full h-48 object-cover" />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100">
-                          <button
-                            onClick={() => toggleFavorite.mutate({ id: photo.id, isFavorite: !photo.isFavorite })}
-                            className={`p-2 rounded-full transition-colors ${photo.isFavorite ? "bg-[#C8A96E] text-white" : "bg-white text-[#0A0A0A] hover:bg-[#C8A96E] hover:text-white"}`}
-                            title={photo.isFavorite ? "Remove from favorites" : "Add to front page"}
-                          >
-                            <Star size={16} fill={photo.isFavorite ? "currentColor" : "none"} />
-                          </button>
-                          <button
-                            onClick={() => { if (confirm("Delete this photo?")) deletePhoto.mutate(photo.id); }}
-                            className="p-2 rounded-full bg-white text-[#0A0A0A] hover:bg-red-500 hover:text-white transition-colors"
-                            title="Delete photo"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                        {photo.isFavorite && (
-                          <div className="absolute top-2 right-2 bg-[#C8A96E] text-white p-1 rounded-full">
-                            <Star size={10} fill="currentColor" />
-                          </div>
-                        )}
-                        <div className="p-3 border-t border-[#E5E5E5]">
-                          <p className="text-xs text-[#6B6B6B] truncate font-medium mb-1.5">{photo.title ?? "Untitled"}</p>
-                          {activeSlug !== "all" && subcategories.length > 0 && (
-                            <select
-                              value={photo.subcategoryId ?? ""}
-                              onChange={(e) => assignSubcategory.mutate({ id: photo.id, subcategoryId: e.target.value ? Number(e.target.value) : null })}
-                              className="w-full border border-[#E5E5E5] bg-[#FAFAFA] px-2 py-1 text-[11px] text-[#6B6B6B] focus:outline-none focus:border-[#0A0A0A] transition-colors rounded-sm"
-                              title="Assign subcategory"
+                {filteredPhotos.map((photo: any) => {
+                  const isSelected = selectedIds.has(photo.id);
+                  const photoSubcat = subcategories.find((s: any) => s.id === photo.subcategoryId);
+                  return (
+                    <div
+                      key={photo.id}
+                      className={`group relative bg-white overflow-hidden rounded-sm border transition-all ${isSelected ? "border-[#C8A96E] ring-2 ring-[#C8A96E]/40" : "border-[#E5E5E5]"}`}
+                    >
+                      {/* Checkbox overlay */}
+                      <button
+                        onClick={() => toggleSelect(photo.id)}
+                        className={`absolute top-2 left-2 z-10 p-0.5 rounded transition-all ${isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+                        title={isSelected ? "Deselect" : "Select"}
+                      >
+                        {isSelected
+                          ? <CheckSquare size={20} className="text-[#C8A96E] drop-shadow-sm" />
+                          : <Square size={20} className="text-white drop-shadow-sm" />}
+                      </button>
+
+                      <img src={photo.url} alt={photo.title ?? ""} className="w-full h-48 object-cover" />
+                      <div className={`absolute inset-0 transition-all duration-300 flex items-center justify-center gap-3 ${isSelected ? "bg-black/20" : "bg-black/0 group-hover:bg-black/40"} ${isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+                        {!isSelected && (
+                          <>
+                            <button
+                              onClick={() => toggleFavorite.mutate({ id: photo.id, isFavorite: !photo.isFavorite })}
+                              className={`p-2 rounded-full transition-colors ${photo.isFavorite ? "bg-[#C8A96E] text-white" : "bg-white text-[#0A0A0A] hover:bg-[#C8A96E] hover:text-white"}`}
+                              title={photo.isFavorite ? "Remove from favorites" : "Add to front page"}
                             >
-                              <option value="">— subcategory —</option>
-                              {subcategories.map((s: any) => (
-                                <option key={s.id} value={s.id}>{s.name}</option>
-                              ))}
-                            </select>
-                          )}
-                          {activeSlug === "all" && photoSubcat && (
-                            <span className="inline-block bg-[#F0F0F0] text-[#6B6B6B] text-[10px] px-2 py-0.5 rounded-full">{photoSubcat.name}</span>
-                          )}
-                        </div>
+                              <Star size={16} fill={photo.isFavorite ? "currentColor" : "none"} />
+                            </button>
+                            <button
+                              onClick={() => { if (confirm("Delete this photo?")) deletePhoto.mutate(photo.id); }}
+                              className="p-2 rounded-full bg-white text-[#0A0A0A] hover:bg-red-500 hover:text-white transition-colors"
+                              title="Delete photo"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </>
+                        )}
                       </div>
-                    );
-                  })}
+                      {photo.isFavorite && (
+                        <div className="absolute top-2 right-2 bg-[#C8A96E] text-white p-1 rounded-full">
+                          <Star size={10} fill="currentColor" />
+                        </div>
+                      )}
+                      <div className="p-3 border-t border-[#E5E5E5]">
+                        <p className="text-xs text-[#6B6B6B] truncate font-medium mb-1.5">{photo.title ?? "Untitled"}</p>
+                        {activeSlug !== "all" && subcategories.length > 0 && (
+                          <select
+                            value={photo.subcategoryId ?? ""}
+                            onChange={(e) => assignSubcategory.mutate({ id: photo.id, subcategoryId: e.target.value ? Number(e.target.value) : null })}
+                            className="w-full border border-[#E5E5E5] bg-[#FAFAFA] px-2 py-1 text-[11px] text-[#6B6B6B] focus:outline-none focus:border-[#0A0A0A] transition-colors rounded-sm"
+                            title="Assign subcategory"
+                          >
+                            <option value="">— subcategory —</option>
+                            {subcategories.map((s: any) => (
+                              <option key={s.id} value={s.id}>{s.name}</option>
+                            ))}
+                          </select>
+                        )}
+                        {activeSlug === "all" && photoSubcat && (
+                          <span className="inline-block bg-[#F0F0F0] text-[#6B6B6B] text-[10px] px-2 py-0.5 rounded-full">{photoSubcat.name}</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
