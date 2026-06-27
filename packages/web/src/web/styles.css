@@ -13,7 +13,8 @@
   --accent-dark: #A8893E;
   --font-display: 'DM Sans', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
-  --nav-height: 64px;   /* mobile */
+  --nav-height: 64px;
+  --page-px: clamp(0.75rem, 2vw, 2.5rem);
 }
 
 @media (min-width: 640px) {
