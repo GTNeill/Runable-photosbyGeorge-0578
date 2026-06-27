@@ -13,6 +13,13 @@
   --accent-dark: #A8893E;
   --font-display: 'DM Sans', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
+  --nav-height: 4rem;   /* matches h-16 at 18px base = 72px */
+}
+
+@media (min-width: 640px) {
+  :root {
+    --nav-height: 5rem;  /* matches h-20 at 18px base = 90px */
+  }
 }
 
 * {

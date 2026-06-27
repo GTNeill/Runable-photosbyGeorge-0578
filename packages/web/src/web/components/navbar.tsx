@@ -92,7 +92,7 @@ export function Navbar() {
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${bgClass}`}>
-      <div className="max-w-[2560px] mx-auto px-5 sm:px-8 lg:px-12 2xl:px-20 h-16 sm:h-20 flex items-center justify-between relative">
+      <div className="max-w-[2560px] mx-auto px-5 sm:px-8 lg:px-12 2xl:px-20 flex items-center justify-between relative" style={{ height: "var(--nav-height)" }}>
 
         {/* Site name */}
         <Link to="/" onClick={closeAll}>
