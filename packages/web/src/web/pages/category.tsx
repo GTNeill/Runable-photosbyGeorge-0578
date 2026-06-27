@@ -137,7 +137,7 @@ export default function CategoryPage() {
 
         {/* Subcategory filter pills — only shown if subcategories exist */}
         {subcategories.length > 0 && (
-          <div className="flex flex-wrap gap-3 mb-8 sm:mb-10">
+          <div className="flex flex-wrap gap-3 pt-5 pb-6 sm:pt-6 sm:pb-8">
             <button
               onClick={() => setSubFilter(null)}
               className={`px-5 py-2 text-[0.75rem] font-medium tracking-[0.15em] uppercase border transition-colors duration-150 rounded-sm ${
