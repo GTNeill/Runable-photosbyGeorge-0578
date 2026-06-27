@@ -82,7 +82,7 @@ export function Navbar() {
   ];
 
   const navLinkClass =
-    "nav-link text-[13px] font-medium tracking-[0.15em] uppercase text-[#A0A0A0] hover:text-white cursor-pointer transition-colors duration-200";
+    "nav-link text-[0.8rem] font-medium tracking-[0.15em] uppercase text-[#A0A0A0] hover:text-white cursor-pointer transition-colors duration-200";
 
   const closeAll = () => {
     setMenuOpen(false);
@@ -92,7 +92,7 @@ export function Navbar() {
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${bgClass}`}>
-      <div className="max-w-[2560px] mx-auto px-5 sm:px-8 lg:px-12 2xl:px-20 h-14 sm:h-16 flex items-center justify-between relative">
+      <div className="max-w-[2560px] mx-auto px-5 sm:px-8 lg:px-12 2xl:px-20 h-16 sm:h-20 flex items-center justify-between relative">
 
         {/* Site name */}
         <Link to="/" onClick={closeAll}>
@@ -104,13 +104,13 @@ export function Navbar() {
         {/* Centered category / subcategory title */}
         {activeCategoryName && (
           <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none flex items-center gap-2">
-            <span className="font-display text-sm sm:text-base tracking-[0.2em] text-[#F0F0F0]">
+            <span className="font-display text-base sm:text-lg tracking-[0.2em] text-[#F0F0F0]">
               {activeCategoryName}
             </span>
             {activeSubName && (
               <>
-                <span className="text-[#2A2A2A] text-sm select-none">/</span>
-                <span className="font-display text-sm sm:text-base tracking-[0.2em] text-[#A0A0A0]">
+                <span className="text-[#5A5A5A] text-base select-none">/</span>
+                <span className="font-display text-base sm:text-lg tracking-[0.2em] text-[#A0A0A0]">
                   {activeSubName}
                 </span>
               </>
@@ -140,7 +140,7 @@ export function Navbar() {
                         /* No subcategories — direct link */
                         <Link to={`/category/${cat.slug}`}>
                           <span
-                            className="block px-6 py-2.5 text-[13px] font-medium tracking-[0.15em] text-[#A0A0A0] hover:text-white hover:bg-white/5 cursor-pointer transition-colors duration-150"
+                            className="block px-6 py-2.5 text-[0.8rem] font-medium tracking-[0.15em] text-[#A0A0A0] hover:text-white hover:bg-white/5 cursor-pointer transition-colors duration-150"
                             onClick={() => setPortfolioOpen(false)}
                           >
                             {cat.name}
@@ -151,7 +151,7 @@ export function Navbar() {
                         <div>
                           <Link to={`/category/${cat.slug}`}>
                             <span
-                              className="block px-6 py-2.5 text-[13px] font-medium tracking-[0.15em] text-[#F0F0F0] hover:text-white hover:bg-white/5 cursor-pointer transition-colors duration-150"
+                              className="block px-6 py-2.5 text-[0.8rem] font-medium tracking-[0.15em] text-[#F0F0F0] hover:text-white hover:bg-white/5 cursor-pointer transition-colors duration-150"
                               onClick={() => setPortfolioOpen(false)}
                             >
                               {cat.name}
@@ -160,7 +160,7 @@ export function Navbar() {
                           {subs.map((sub) => (
                             <Link key={sub.slug} to={`/category/${cat.slug}?sub=${sub.slug}`}>
                               <span
-                                className="block pl-10 pr-6 py-2 text-[12px] font-medium tracking-[0.12em] text-[#5A5A5A] hover:text-[#C8A96E] hover:bg-white/5 cursor-pointer transition-colors duration-150"
+                                className="block pl-10 pr-6 py-2 text-[0.75rem] font-medium tracking-[0.12em] text-[#A0A0A0] hover:text-[#C8A96E] hover:bg-white/5 cursor-pointer transition-colors duration-150"
                                 onClick={() => setPortfolioOpen(false)}
                               >
                                 {sub.name}
@@ -202,7 +202,7 @@ export function Navbar() {
 
           {/* Portfolio — expand/collapse */}
           <button
-            className="flex items-center gap-1 text-[13px] font-medium tracking-[0.15em] uppercase text-[#A0A0A0] cursor-pointer"
+            className="flex items-center gap-1 text-[0.8rem] font-medium tracking-[0.15em] uppercase text-[#A0A0A0] cursor-pointer"
             onClick={() => setPortfolioOpen((o) => !o)}
           >
             Portfolio
@@ -223,7 +223,7 @@ export function Navbar() {
                     {subs.length === 0 ? (
                       <Link to={`/category/${cat.slug}`}>
                         <span
-                          className="block py-2 text-[13px] font-medium tracking-[0.15em] text-[#A0A0A0] hover:text-white cursor-pointer transition-colors"
+                          className="block py-2 text-[0.8rem] font-medium tracking-[0.15em] text-[#A0A0A0] hover:text-white cursor-pointer transition-colors"
                           onClick={closeAll}
                         >
                           {cat.name}
@@ -235,7 +235,7 @@ export function Navbar() {
                         <div className="flex items-center justify-between py-2">
                           <Link to={`/category/${cat.slug}`}>
                             <span
-                              className="text-[13px] font-medium tracking-[0.15em] text-[#F0F0F0] hover:text-white cursor-pointer transition-colors"
+                              className="text-[0.8rem] font-medium tracking-[0.15em] text-[#F0F0F0] hover:text-white cursor-pointer transition-colors"
                               onClick={closeAll}
                             >
                               {cat.name}
@@ -257,7 +257,7 @@ export function Navbar() {
                             {subs.map((sub) => (
                               <Link key={sub.slug} to={`/category/${cat.slug}?sub=${sub.slug}`}>
                                 <span
-                                  className="block py-1.5 text-[12px] font-medium tracking-[0.12em] text-[#5A5A5A] hover:text-[#C8A96E] cursor-pointer transition-colors"
+                                  className="block py-1.5 text-[0.75rem] font-medium tracking-[0.12em] text-[#A0A0A0] hover:text-[#C8A96E] cursor-pointer transition-colors"
                                   onClick={closeAll}
                                 >
                                   {sub.name}
@@ -279,7 +279,7 @@ export function Navbar() {
           {staticLinks.map((l) => (
             <Link key={l.to} to={l.to}>
               <span
-                className="text-[13px] font-medium tracking-[0.15em] uppercase text-[#A0A0A0] hover:text-white cursor-pointer transition-colors"
+                className="text-[0.8rem] font-medium tracking-[0.15em] uppercase text-[#A0A0A0] hover:text-white cursor-pointer transition-colors"
                 onClick={closeAll}
               >
                 {l.label}
